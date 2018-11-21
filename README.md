@@ -2,6 +2,10 @@
 
 Async asset handling for [Kha](https://github.com/Kode/Kha.git).
 
+## dependencies
+
+- add [tink_core](https://github.com/haxetink/tink_core.git) to your main project's `khafile.js` as nested `addProject` call's don't quite work in khamake yet
+
 ```haxe
 using tink.CoreApi;
 
