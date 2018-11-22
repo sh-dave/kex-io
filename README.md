@@ -1,8 +1,6 @@
 # kex-io
 
-Async asset handling for [Kha](https://github.com/Kode/Kha.git).
-
-The code is heavily based on [iron's Data class](https://github.com/armory3d/iron/blob/master/Sources/iron/data/Data.hx), but uses promises instead of callbacks. It also features a simple scoping (i.e. reference counting) mechanism.
+Async asset handling for [Kha](https://github.com/Kode/Kha.git). The code is heavily based on [iron's Data class](https://github.com/armory3d/iron/blob/master/Sources/iron/data/Data.hx), but uses promises instead of callbacks. It also features a simple scoping (i.e. reference counting) mechanism. All assets are cached, whether already loaded or still in progress.
 
 ## dependencies
 
@@ -53,12 +51,12 @@ typedef Foo = {
 
 blobs.get('*', './', 'foo.json')
 	.next(function( b ) {
-		var f: Foo = tink.Json.parse(b.toString());
-		return f;
+		var foo: Foo = tink.Json.parse(b.toString());
+		return foo;
 	}).handle(function( o ) switch o {
-		case Success(json):
-			trace(json.someInt);
-			trace(json.someString);
+		case Success(foo):
+			trace(foo.someInt);
+			trace(foo.someString);
 		case Failure(err):
 	});
 	
