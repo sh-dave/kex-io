@@ -59,7 +59,7 @@ blobs.get('*', './', 'foo.json')
 			trace(foo.someString);
 		case Failure(err):
 	});
-	
+
 // scopes
 Promise.inParallel([
 	blobs.get('scope-a', './', 'a.txt'),
@@ -74,3 +74,7 @@ Promise.inParallel([
 	case Failure(err);
 });
 ```
+
+## optional verbose logging
+
+Use the initialization macro `--macro kex.io.AssetLog.info(true)` to enable more verbose logging.
