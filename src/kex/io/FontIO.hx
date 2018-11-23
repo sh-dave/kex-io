@@ -1,13 +1,13 @@
 package kex.io;
 
 import kex.io.AssetLog.*;
-import kha.Blob;
+import kha.Font;
 
 using tink.CoreApi;
 
-class BlobIO {
-	var cachedAssets: Map<String, Blob> = new Map();
-	var loadingAssets: Map<String, Array<FutureTrigger<Outcome<Blob, Error>>>> = new Map();
+class FontIO {
+	var cachedAssets: Map<String, Font> = new Map();
+	var loadingAssets: Map<String, Array<FutureTrigger<Outcome<Font, Error>>>> = new Map();
 	var urlToScope: Map<String, Array<String>> = new Map();
 
 	var assetsHandled = 0;
@@ -15,15 +15,15 @@ class BlobIO {
 	public function new() {
 	}
 
-	public function get( scope: String, path: String, file: String ) : Promise<Blob> {
+	public function get( scope: String, path: String, file: String ) : Promise<Font> {
 		var url = CoreIOUtils.tagAsset(urlToScope, scope, path, file);
 		var cached = cachedAssets.get(url);
 		var f = Future.trigger();
 
-		asset_info('queue blob `$url` for scope `$scope`');
+		asset_info('queue font `$url` for scope `$scope`');
 
 		if (cached != null) {
-			asset_info('already cached blob `$url`, adding scope `$scope`');
+			asset_info('already cached font `$url`, adding scope `$scope`');
 			f.trigger(Success(cached));
 			return f;
 		}
@@ -31,17 +31,17 @@ class BlobIO {
 		var loading = loadingAssets.get(url);
 
 		if (loading != null) {
-			asset_info('already loading blob `$url`, adding scope `$scope`');
+			asset_info('already loading font `$url`, adding scope `$scope`');
 			loading.push(f);
 			return f;
 		}
 
-		asset_info('loading blob `$url` for scope `$scope`');
+		asset_info('loading font `$url` for scope `$scope`');
 		loadingAssets.set(url, [f]);
 
-		kha.Assets.loadBlobFromPath(url, function( blob: Blob ) {
-			cachedAssets.set(url, blob);
-			var r = Success(blob);
+		kha.Assets.loadFontFromPath(url, function( font: Font ) {
+			cachedAssets.set(url, font);
+			var r = Success(font);
 
 			for (t in loadingAssets.get(url)) {
 				t.trigger(r);
@@ -68,19 +68,19 @@ class BlobIO {
 			var scopes = urlToScope.get(url);
 
 			if (scopes.indexOf(scope) != -1) {
-				unloadBlob(scope, url);
+				unloadSound(scope, url);
 			}
 		}
 	}
 
-	public function unloadBlob( scope: String, url: String ) {
+	public function unloadSound( scope: String, url: String ) {
 		var scopes = urlToScope.get(url);
 
-		asset_info('unscoping blob `$url` for `$scope`');
+		asset_info('unscoping font `$url` for `$scope`');
 		scopes.remove(scope);
 
 		if (scopes.length == 0) {
-			asset_info('unloading blob `$url`');
+			asset_info('unloading font `$url`');
 			cachedAssets.get(url).unload();
 			cachedAssets.remove(url);
 		}
