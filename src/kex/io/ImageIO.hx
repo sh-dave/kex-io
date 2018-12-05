@@ -20,7 +20,7 @@ class ImageIO {
 		var cached = cachedAssets.get(url);
 		var f = Future.trigger();
 
-		asset_info('[ info] queue image `$url` for scope `$scope`');
+		asset_info('queue image `$url` for scope `$scope`');
 
 		if (cached != null) {
 			asset_info('already cached image `$url`, adding scope `$scope`');
