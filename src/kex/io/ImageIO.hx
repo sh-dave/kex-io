@@ -43,6 +43,8 @@ class ImageIO {
 			cachedAssets.set(url, img);
 			var r = Success(img);
 
+			asset_info('loaded image `$url` for scope `$scope`');
+
 			for (t in loadingAssets.get(url)) {
 				t.trigger(r);
 			}
@@ -51,6 +53,8 @@ class ImageIO {
 			assetsHandled += 1;
 		}, function( err ) {
 			var r = Failure(new Error(Std.string(err)));
+
+			asset_info('failed to load image `$url` for scope `$scope`');
 
 			for (t in loadingAssets.get(url)) {
 				t.trigger(r);

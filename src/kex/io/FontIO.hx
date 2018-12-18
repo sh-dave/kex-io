@@ -43,6 +43,8 @@ class FontIO {
 			cachedAssets.set(url, font);
 			var r = Success(font);
 
+			asset_info('loaded font `$url` for scope `$scope`');
+
 			for (t in loadingAssets.get(url)) {
 				t.trigger(r);
 			}
@@ -51,6 +53,8 @@ class FontIO {
 			assetsHandled += 1;
 		}, function( err ) {
 			var r = Failure(new Error(Std.string(err)));
+
+			asset_info('failed to load font `$url` for scope `$scope`');
 
 			for (t in loadingAssets.get(url)) {
 				t.trigger(r);

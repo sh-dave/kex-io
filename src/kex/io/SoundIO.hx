@@ -43,6 +43,8 @@ class SoundIO {
 			cachedAssets.set(url, sound);
 			var r = Success(sound);
 
+			asset_info('loaded sound `$url` for scope `$scope`');
+
 			for (t in loadingAssets.get(url)) {
 				t.trigger(r);
 			}
@@ -51,6 +53,8 @@ class SoundIO {
 			assetsHandled += 1;
 		}, function( err ) {
 			var r = Failure(new Error(Std.string(err)));
+
+			asset_info('failed to load sound `$url` for scope `$scope`');
 
 			for (t in loadingAssets.get(url)) {
 				t.trigger(r);

@@ -43,6 +43,8 @@ class VideoIO {
 			cachedAssets.set(url, video);
 			var r = Success(video);
 
+			asset_info('loaded video `$url` for scope `$scope`');
+
 			for (t in loadingAssets.get(url)) {
 				t.trigger(r);
 			}
@@ -51,6 +53,8 @@ class VideoIO {
 			assetsHandled += 1;
 		}, function( err ) {
 			var r = Failure(new Error(Std.string(err)));
+
+			asset_info('failed to load video `$url` for scope `$scope`');
 
 			for (t in loadingAssets.get(url)) {
 				t.trigger(r);

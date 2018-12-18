@@ -43,6 +43,8 @@ class BlobIO {
 			cachedAssets.set(url, blob);
 			var r = Success(blob);
 
+			asset_info('loaded blob `$url` for scope `$scope`');
+
 			for (t in loadingAssets.get(url)) {
 				t.trigger(r);
 			}
@@ -51,6 +53,8 @@ class BlobIO {
 			assetsHandled += 1;
 		}, function( err ) {
 			var r = Failure(new Error(Std.string(err)));
+
+			asset_info('failed to load blob `$url` for scope `$scope`');
 
 			for (t in loadingAssets.get(url)) {
 				t.trigger(r);
