@@ -39,7 +39,11 @@ class ImageIO {
 		asset_info('loading image `$url` for scope `$scope`');
 		loadingAssets.set(url, [f]);
 
-		kha.Assets.loadImageFromPath(url, false, function( img: Image ) {
+		var loadedUrl = url;
+#if (kha_kore || kha_hl)
+		loadedUrl = StringTools.replace(loadedUrl, '.png', '.k');
+#end
+		kha.Assets.loadImageFromPath(loadedUrl, false, function( img: Image ) {
 			cachedAssets.set(url, img);
 			var r = Success(img);
 
