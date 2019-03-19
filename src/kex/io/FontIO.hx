@@ -41,23 +41,29 @@ class FontIO {
 
 		kha.Assets.loadFontFromPath(url, function( font: Font ) {
 			cachedAssets.set(url, font);
-			var r = Success(font);
-
 			asset_info('loaded font `$url` for scope `$scope`');
+			var r = Success(font);
+			var triggers = loadingAssets.get(url);
 
-			for (t in loadingAssets.get(url)) {
-				t.trigger(r);
+			if (triggers != null) {
+				for (t in triggers) {
+					t.trigger(r);
+				}
 			}
 
 			loadingAssets.remove(url);
 			assetsHandled += 1;
 		}, function( err ) {
-			var r = Failure(new Error(Std.string(err)));
-
 			asset_info('failed to load font `$url` for scope `$scope`');
 
-			for (t in loadingAssets.get(url)) {
-				t.trigger(r);
+			var r = Failure(new Error(Std.string(err)));
+
+			var triggers = loadingAssets.get(url);
+
+			if (triggers != null) {
+				for (t in triggers) {
+					t.trigger(r);
+				}
 			}
 
 			loadingAssets.remove(url);
@@ -71,22 +77,30 @@ class FontIO {
 		for (url in urlToScope.keys()) {
 			var scopes = urlToScope.get(url);
 
-			if (scopes.indexOf(scope) != -1) {
+			if (scopes != null && scopes.indexOf(scope) != -1) {
 				unloadSound(scope, url);
 			}
 		}
 	}
 
 	public function unloadSound( scope: String, url: String ) {
+		asset_info('unscoping font `$url` for `$scope`');
+
 		var scopes = urlToScope.get(url);
 
-		asset_info('unscoping font `$url` for `$scope`');
-		scopes.remove(scope);
+		if (scopes != null) {
+			scopes.remove(scope);
 
-		if (scopes.length == 0) {
-			asset_info('unloading font `$url`');
-			cachedAssets.get(url).unload();
-			cachedAssets.remove(url);
+			if (scopes.length == 0) {
+				asset_info('unloading font `$url`');
+				var asset = cachedAssets.get(url);
+
+				if (asset != null) {
+					asset.unload();
+				}
+
+				cachedAssets.remove(url);
+			}
 		}
 	}
 }

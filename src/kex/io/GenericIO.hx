@@ -48,16 +48,23 @@ class GenericIO<T> {
 				case Success(d):
 					cachedAssets.set(url, d);
 					var r = Success(d);
+					var triggers = loadingAssets.get(url);
 
-					for (t in loadingAssets.get(url)) {
-						t.trigger(r);
+					if (triggers != null) {
+						for (t in triggers) {
+							t.trigger(r);
+						}
 					}
 
 					loadingAssets.remove(url);
 					ret.trigger(r);
 				case err:
-					for (t in loadingAssets.get(url)) {
-						t.trigger(err);
+					var triggers = loadingAssets.get(url);
+
+					if (triggers != null) {
+						for (t in triggers) {
+							t.trigger(err);
+						}
 					}
 
 					loadingAssets.remove(url);
@@ -71,28 +78,31 @@ class GenericIO<T> {
 		for (url in urlToScope.keys()) {
 			var scopes = urlToScope.get(url);
 
-			if (scopes.indexOf(scope) != -1) {
+			if (scopes != null && scopes.indexOf(scope) != -1) {
 				unload(scope, url);
 			}
 		}
 	}
 
 	final function unload( scope: String, url: String ) {
+		asset_info('unscoping $tag `$url` for `$scope`');
+
 		var scopes = urlToScope.get(url);
 
-		asset_info('unscoping $tag `$url` for `$scope`');
-		scopes.remove(scope);
+		if (scopes != null) {
+			scopes.remove(scope);
 
-		if (scopes.length == 0) {
-			asset_info('unloading $tag `$url`');
+			if (scopes.length == 0) {
+				asset_info('unloading $tag `$url`');
 
-			var unloader = unloaders.get(url);
+				var unloader = unloaders.get(url);
 
-			if (unloader != null) {
-				unloader();
+				if (unloader != null) {
+					unloader();
+				}
+
+				cachedAssets.remove(url);
 			}
-
-			cachedAssets.remove(url);
 		}
 	}
 }

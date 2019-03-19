@@ -49,8 +49,12 @@ class ImageIO {
 
 			asset_info('loaded image `$url` for scope `$scope`');
 
-			for (t in loadingAssets.get(url)) {
-				t.trigger(r);
+			var triggers = loadingAssets.get(url);
+
+			if (triggers != null) {
+				for (t in triggers) {
+					t.trigger(r);
+				}
 			}
 
 			loadingAssets.remove(url);
@@ -60,8 +64,12 @@ class ImageIO {
 
 			asset_info('failed to load image `$url` for scope `$scope`');
 
-			for (t in loadingAssets.get(url)) {
-				t.trigger(r);
+			var triggers = loadingAssets.get(url);
+
+			if (triggers != null) {
+				for (t in triggers) {
+					t.trigger(r);
+				}
 			}
 
 			loadingAssets.remove(url);
@@ -75,22 +83,31 @@ class ImageIO {
 		for (url in urlToScope.keys()) {
 			var scopes = urlToScope.get(url);
 
-			if (scopes.indexOf(scope) != -1) {
+			if (scopes != null && scopes.indexOf(scope) != -1) {
 				unloadImage(scope, url);
 			}
 		}
 	}
 
 	public function unloadImage( scope: String, url: String ) {
+		asset_info('unscoping image `$url` for `$scope`');
+
 		var scopes = urlToScope.get(url);
 
-		asset_info('unscoping image `$url` for `$scope`');
-		scopes.remove(scope);
+		if (scopes != null) {
+			scopes.remove(scope);
 
-		if (scopes.length == 0) {
-			asset_info('unloading image `$url`');
-			cachedAssets.get(url).unload();
-			cachedAssets.remove(url);
+			if (scopes.length == 0) {
+				asset_info('unloading image `$url`');
+
+				var asset = cachedAssets.get(url);
+
+				if (asset != null) {
+					asset.unload();
+				}
+
+				cachedAssets.remove(url);
+			}
 		}
 	}
 }
