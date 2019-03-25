@@ -10,8 +10,6 @@ class BlobIO {
 	var loadingAssets: Map<String, Array<FutureTrigger<Outcome<Blob, Error>>>> = new Map();
 	var urlToScope: Map<String, Array<String>> = new Map();
 
-	var assetsHandled = 0;
-
 	public function new() {
 	}
 
@@ -19,11 +17,12 @@ class BlobIO {
 		var url = CoreIOUtils.tagAsset(urlToScope, scope, path, file);
 		var cached = cachedAssets.get(url);
 		var f = Future.trigger();
+		var id = '`$scope:$url`';
 
-		asset_info('queue blob `$url` for scope `$scope`');
+		asset_info('queue blob $id');
 
 		if (cached != null) {
-			asset_info('already cached blob `$url`, adding scope `$scope`');
+			asset_debug('$id is already cached');
 			f.trigger(Success(cached));
 			return f;
 		}
@@ -31,21 +30,20 @@ class BlobIO {
 		var loading = loadingAssets.get(url);
 
 		if (loading != null) {
-			asset_info('already loading blob `$url`, adding scope `$scope`');
+			asset_info('$id is already loading');
 			loading.push(f);
 			return f;
 		}
 
-		asset_info('loading blob `$url` for scope `$scope`');
+		asset_info('loading blob $id');
 		loadingAssets.set(url, [f]);
 
 		kha.Assets.loadBlobFromPath(url, function( blob: Blob ) {
-			cachedAssets.set(url, blob);
+			asset_info('$id finished loading');
+
 			var r = Success(blob);
-
-			asset_info('loaded blob `$url` for scope `$scope`');
-
 			var triggers = loadingAssets.get(url);
+			cachedAssets.set(url, blob);
 
 			if (triggers != null) {
 				for (t in triggers) {
@@ -54,39 +52,44 @@ class BlobIO {
 			}
 
 			loadingAssets.remove(url);
-			assetsHandled += 1;
 		}, function( err ) {
-			var r = Failure(new Error(Std.string(err)));
-
-			asset_info('failed to load blob `$url` for scope `$scope`');
-
+			var errmsg = Std.string(err);
+			var r = Failure(new Error(errmsg));
 			var triggers = loadingAssets.get(url);
+
+			asset_err('$id failed to load ($errmsg)');
 
 			if (triggers != null) {
 				for (t in triggers) {
 					t.trigger(r);
 				}
+			} else {
+				asset_warn('no triggers for `$scope:$url`');
 			}
 
 			loadingAssets.remove(url);
-			assetsHandled += 1;
 		});
 
 		return f;
 	}
 
 	public function unloadScope( scope: String ) {
+		asset_info('unloading scope `$scope`');
+
 		for (url in urlToScope.keys()) {
 			var scopes = urlToScope.get(url);
 
 			if (scopes != null && scopes.indexOf(scope) != -1) {
 				unloadBlob(scope, url);
+			} else {
+				asset_warn('no scope `$scope` found');
 			}
 		}
 	}
 
 	public function unloadBlob( scope: String, url: String ) {
-		asset_info('unscoping blob `$url` for `$scope`');
+		var id = '`$scope:$url`';
+		asset_info('unscoping $id');
 
 		var scopes = urlToScope.get(url);
 
@@ -94,15 +97,20 @@ class BlobIO {
 			scopes.remove(scope);
 
 			if (scopes.length == 0) {
-				asset_info('unloading blob `$url`');
+				asset_info('unloading blob $id');
+
 				var asset = cachedAssets.get(url);
 
 				if (asset != null) {
 					asset.unload();
+				} else {
+					asset_warn('no asset $id in cache found');
 				}
 
 				cachedAssets.remove(url);
 			}
+		} else {
+			asset_warn('no scope $id found');
 		}
 	}
 }
