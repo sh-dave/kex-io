@@ -21,11 +21,12 @@ class GenericIO<T> {
 		var url = CoreIOUtils.tagAsset(urlToScope, scope, path, file);
 		var cached = cachedAssets.get(url);
 		var f = Future.trigger();
+		var id = '`$scope:$url`';
 
-		asset_info('queue $tag `$url` for scope `$scope`');
+		asset_info('queue $tag $id');
 
 		if (cached != null) {
-			asset_info('already cached $tag `$url`, adding scope `$scope`');
+			asset_debug('$id is already cached');
 			f.trigger(Success(cached));
 			return f;
 		}
@@ -33,12 +34,12 @@ class GenericIO<T> {
 		var loading = loadingAssets.get(url);
 
 		if (loading != null) {
-			asset_info('already loading $tag `$url`, adding scope `$scope`');
+			asset_info('$id is already loading');
 			loading.push(f);
 			return f;
 		}
 
-		asset_info('loading $tag `$url` for scope `$scope`');
+		asset_info('loading $tag $id');
 		loadingAssets.set(url, [f]);
 
 		var ret = Future.trigger();
@@ -75,17 +76,22 @@ class GenericIO<T> {
 	}
 
 	public final function unloadScope( scope: String ) {
+		asset_info('unloading scope `$scope`');
+
 		for (url in urlToScope.keys()) {
 			var scopes = urlToScope.get(url);
 
 			if (scopes != null && scopes.indexOf(scope) != -1) {
 				unload(scope, url);
+			} else {
+				asset_warn('no scope `$scope` found');
 			}
 		}
 	}
 
 	final function unload( scope: String, url: String ) {
-		asset_info('unscoping $tag `$url` for `$scope`');
+		var id = '`$scope:$url`';
+		asset_info('unscoping $id');
 
 		var scopes = urlToScope.get(url);
 
@@ -93,7 +99,7 @@ class GenericIO<T> {
 			scopes.remove(scope);
 
 			if (scopes.length == 0) {
-				asset_info('unloading $tag `$url`');
+				asset_info('unloading $tag $id');
 
 				var unloader = unloaders.get(url);
 
@@ -103,6 +109,8 @@ class GenericIO<T> {
 
 				cachedAssets.remove(url);
 			}
+		} else {
+			asset_warn('no scope $id found');
 		}
 	}
 }
