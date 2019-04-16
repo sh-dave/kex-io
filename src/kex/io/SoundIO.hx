@@ -15,7 +15,7 @@ class SoundIO {
 	public function new() {
 	}
 
-	public function get( scope: String, path: String, file: String ) : Promise<Sound> {
+	public function get( scope: String, path: String, file: String, ?opts: { uncompress: Bool } ) : Promise<Sound> {
 		var url = CoreIOUtils.tagAsset(urlToScope, scope, path, file);
 		var cached = cachedAssets.get(url);
 		var f = Future.trigger();
@@ -36,10 +36,7 @@ class SoundIO {
 			return f;
 		}
 
-		asset_info('loading sound `$url` for scope `$scope`');
-		loadingAssets.set(url, [f]);
-
-		kha.Assets.loadSoundFromPath(url, function( sound: Sound ) {
+		function soundok( sound: Sound ) {
 			cachedAssets.set(url, sound);
 			var r = Success(sound);
 
@@ -51,6 +48,17 @@ class SoundIO {
 
 			loadingAssets.remove(url);
 			assetsHandled += 1;
+		}
+
+		asset_info('loading sound `$url` for scope `$scope`');
+		loadingAssets.set(url, [f]);
+
+		kha.Assets.loadSoundFromPath(url, function( sound: Sound ) {
+			if (opts == null || opts.uncompress) {
+				sound.uncompress(soundok.bind(sound));
+			} else {
+				soundok(sound);
+			}
 		}, function( err ) {
 			var r = Failure(new Error(Std.string(err)));
 
