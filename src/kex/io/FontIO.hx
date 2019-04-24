@@ -6,19 +6,23 @@ import kha.Font;
 using tink.CoreApi;
 
 class FontIO {
-	var cachedAssets: Map<String, Font> = new Map();
-	var loadingAssets: Map<String, Array<FutureTrigger<Outcome<Font, Error>>>> = new Map();
-	var urlToScope: Map<String, Array<String>> = new Map();
+	final cachedAssets: Map<String, Font> = new Map();
+	final loadingAssets: Map<String, Array<FutureTrigger<Outcome<Font, Error>>>> = new Map();
+	final urlToScope: Map<String, Array<String>> = new Map();
 
-	var assetsHandled = 0;
+	public final stats = {
+		all: 0,
+		ready: 0,
+		failed: 0,
+	}
 
 	public function new() {
 	}
 
 	public function get( scope: String, path: String, file: String ) : Promise<Font> {
-		var url = CoreIOUtils.tagAsset(urlToScope, scope, path, file);
-		var cached = cachedAssets.get(url);
-		var f = Future.trigger();
+		final url = CoreIOUtils.tagAsset(urlToScope, scope, path, file);
+		final cached = cachedAssets.get(url);
+		final f = Future.trigger();
 
 		asset_info('queue font `$url` for scope `$scope`');
 
@@ -28,7 +32,7 @@ class FontIO {
 			return f;
 		}
 
-		var loading = loadingAssets.get(url);
+		final loading = loadingAssets.get(url);
 
 		if (loading != null) {
 			asset_info('already loading font `$url`, adding scope `$scope`');
@@ -38,6 +42,7 @@ class FontIO {
 
 		asset_info('loading font `$url` for scope `$scope`');
 		loadingAssets.set(url, [f]);
+		stats.all += 1;
 
 		kha.Assets.loadFontFromPath(url, function( font: Font ) {
 			cachedAssets.set(url, font);
@@ -52,13 +57,12 @@ class FontIO {
 			}
 
 			loadingAssets.remove(url);
-			assetsHandled += 1;
+			stats.ready += 1;
 		}, function( err ) {
 			asset_info('failed to load font `$url` for scope `$scope`');
 
-			var r = Failure(new Error(Std.string(err)));
-
-			var triggers = loadingAssets.get(url);
+			final r = Failure(new Error(Std.string(err)));
+			final triggers = loadingAssets.get(url);
 
 			if (triggers != null) {
 				for (t in triggers) {
@@ -67,7 +71,7 @@ class FontIO {
 			}
 
 			loadingAssets.remove(url);
-			assetsHandled += 1;
+			stats.failed += 1;
 		});
 
 		return f;
@@ -75,7 +79,7 @@ class FontIO {
 
 	public function unloadScope( scope: String ) {
 		for (url in urlToScope.keys()) {
-			var scopes = urlToScope.get(url);
+			final scopes = urlToScope.get(url);
 
 			if (scopes != null && scopes.indexOf(scope) != -1) {
 				unloadSound(scope, url);
@@ -86,14 +90,14 @@ class FontIO {
 	public function unloadSound( scope: String, url: String ) {
 		asset_info('unscoping font `$url` for `$scope`');
 
-		var scopes = urlToScope.get(url);
+		final scopes = urlToScope.get(url);
 
 		if (scopes != null) {
 			scopes.remove(scope);
 
 			if (scopes.length == 0) {
 				asset_info('unloading font `$url`');
-				var asset = cachedAssets.get(url);
+				final asset = cachedAssets.get(url);
 
 				if (asset != null) {
 					asset.unload();

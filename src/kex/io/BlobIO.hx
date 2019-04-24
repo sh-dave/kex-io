@@ -6,18 +6,18 @@ import kha.Blob;
 using tink.CoreApi;
 
 class BlobIO {
-	var cachedAssets: Map<String, Blob> = new Map();
-	var loadingAssets: Map<String, Array<FutureTrigger<Outcome<Blob, Error>>>> = new Map();
-	var urlToScope: Map<String, Array<String>> = new Map();
+	final cachedAssets: Map<String, Blob> = new Map();
+	final loadingAssets: Map<String, Array<FutureTrigger<Outcome<Blob, Error>>>> = new Map();
+	final urlToScope: Map<String, Array<String>> = new Map();
 
 	public function new() {
 	}
 
 	public function get( scope: String, path: String, file: String ) : Promise<Blob> {
-		var url = CoreIOUtils.tagAsset(urlToScope, scope, path, file);
-		var cached = cachedAssets.get(url);
-		var f = Future.trigger();
-		var id = '`$scope:$url`';
+		final url = CoreIOUtils.tagAsset(urlToScope, scope, path, file);
+		final cached = cachedAssets.get(url);
+		final f = Future.trigger();
+		final id = '`$scope:$url`';
 
 		asset_info('queue blob $id');
 
@@ -27,7 +27,7 @@ class BlobIO {
 			return f;
 		}
 
-		var loading = loadingAssets.get(url);
+		final loading = loadingAssets.get(url);
 
 		if (loading != null) {
 			asset_info('$id is already loading');
@@ -41,8 +41,8 @@ class BlobIO {
 		kha.Assets.loadBlobFromPath(url, function( blob: Blob ) {
 			asset_info('$id finished loading');
 
-			var r = Success(blob);
-			var triggers = loadingAssets.get(url);
+			final r = Success(blob);
+			final triggers = loadingAssets.get(url);
 			cachedAssets.set(url, blob);
 
 			if (triggers != null) {
@@ -53,9 +53,9 @@ class BlobIO {
 
 			loadingAssets.remove(url);
 		}, function( err ) {
-			var errmsg = Std.string(err);
-			var r = Failure(new Error(errmsg));
-			var triggers = loadingAssets.get(url);
+			final errmsg = Std.string(err);
+			final r = Failure(new Error(errmsg));
+			final triggers = loadingAssets.get(url);
 
 			asset_err('$id failed to load ($errmsg)');
 
@@ -77,7 +77,7 @@ class BlobIO {
 		asset_info('unloading scope `$scope`');
 
 		for (url in urlToScope.keys()) {
-			var scopes = urlToScope.get(url);
+			final scopes = urlToScope.get(url);
 
 			if (scopes != null && scopes.indexOf(scope) != -1) {
 				unloadBlob(scope, url);
@@ -88,10 +88,10 @@ class BlobIO {
 	}
 
 	public function unloadBlob( scope: String, url: String ) {
-		var id = '`$scope:$url`';
+		final id = '`$scope:$url`';
 		asset_info('unscoping $id');
 
-		var scopes = urlToScope.get(url);
+		final scopes = urlToScope.get(url);
 
 		if (scopes != null) {
 			scopes.remove(scope);
@@ -99,7 +99,7 @@ class BlobIO {
 			if (scopes.length == 0) {
 				asset_info('unloading blob $id');
 
-				var asset = cachedAssets.get(url);
+				final asset = cachedAssets.get(url);
 
 				if (asset != null) {
 					asset.unload();

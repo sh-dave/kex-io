@@ -6,19 +6,23 @@ import kha.Image;
 using tink.CoreApi;
 
 class ImageIO {
-	var cachedAssets: Map<String, Image> = new Map();
-	var loadingAssets: Map<String, Array<FutureTrigger<Outcome<Image, Error>>>> = new Map();
-	var urlToScope: Map<String, Array<String>> = new Map();
+	final cachedAssets: Map<String, Image> = new Map();
+	final loadingAssets: Map<String, Array<FutureTrigger<Outcome<Image, Error>>>> = new Map();
+	final urlToScope: Map<String, Array<String>> = new Map();
 
-	var assetsHandled = 0;
+	public final stats = {
+		all: 0,
+		ready: 0,
+		failed: 0,
+	}
 
 	public function new() {
 	}
 
 	public function get( scope: String, path: String, file: String ) : Promise<Image> {
-		var url = CoreIOUtils.tagAsset(urlToScope, scope, path, file);
-		var cached = cachedAssets.get(url);
-		var f = Future.trigger();
+		final url = CoreIOUtils.tagAsset(urlToScope, scope, path, file);
+		final cached = cachedAssets.get(url);
+		final f = Future.trigger();
 
 		asset_info('queue image `$url` for scope `$scope`');
 
@@ -28,7 +32,7 @@ class ImageIO {
 			return f;
 		}
 
-		var loading = loadingAssets.get(url);
+		final loading = loadingAssets.get(url);
 
 		if (loading != null) {
 			asset_info('already loading image `$url`, adding scope `$scope`');
@@ -39,17 +43,19 @@ class ImageIO {
 		asset_info('loading image `$url` for scope `$scope`');
 		loadingAssets.set(url, [f]);
 
-		var loadedUrl = url;
+		final loadedUrl = url;
 #if (kha_kore || kha_hl)
 		loadedUrl = StringTools.replace(loadedUrl, '.png', '.k');
 #end
+		stats.all += 1;
+
 		kha.Assets.loadImageFromPath(loadedUrl, false, function( img: Image ) {
 			cachedAssets.set(url, img);
 			var r = Success(img);
 
 			asset_info('loaded image `$url` for scope `$scope`');
 
-			var triggers = loadingAssets.get(url);
+			final triggers = loadingAssets.get(url);
 
 			if (triggers != null) {
 				for (t in triggers) {
@@ -58,13 +64,13 @@ class ImageIO {
 			}
 
 			loadingAssets.remove(url);
-			assetsHandled += 1;
+			stats.ready += 1;
 		}, function( err ) {
-			var r = Failure(new Error(Std.string(err)));
+			final r = Failure(new Error(Std.string(err)));
 
 			asset_info('failed to load image `$url` for scope `$scope`');
 
-			var triggers = loadingAssets.get(url);
+			final triggers = loadingAssets.get(url);
 
 			if (triggers != null) {
 				for (t in triggers) {
@@ -73,7 +79,7 @@ class ImageIO {
 			}
 
 			loadingAssets.remove(url);
-			assetsHandled += 1;
+			stats.failed += 1;
 		});
 
 		return f;
@@ -81,7 +87,7 @@ class ImageIO {
 
 	public function unloadScope( scope: String ) {
 		for (url in urlToScope.keys()) {
-			var scopes = urlToScope.get(url);
+			final scopes = urlToScope.get(url);
 
 			if (scopes != null && scopes.indexOf(scope) != -1) {
 				unloadImage(scope, url);
@@ -92,7 +98,7 @@ class ImageIO {
 	public function unloadImage( scope: String, url: String ) {
 		asset_info('unscoping image `$url` for `$scope`');
 
-		var scopes = urlToScope.get(url);
+		final scopes = urlToScope.get(url);
 
 		if (scopes != null) {
 			scopes.remove(scope);
@@ -100,7 +106,7 @@ class ImageIO {
 			if (scopes.length == 0) {
 				asset_info('unloading image `$url`');
 
-				var asset = cachedAssets.get(url);
+				final asset = cachedAssets.get(url);
 
 				if (asset != null) {
 					asset.unload();

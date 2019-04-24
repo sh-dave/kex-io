@@ -5,23 +5,25 @@ import kex.io.AssetLog.*;
 using tink.CoreApi;
 
 class GenericIO<T> {
-	var cachedAssets: Map<String, T> = new Map();
-	var loadingAssets: Map<String, Array<FutureTrigger<Outcome<T, Error>>>> = new Map();
-	var urlToScope: Map<String, Array<String>> = new Map();
-	var unloaders: Map<String, Void -> Void> = new Map();
-	var tag: String;
+	final cachedAssets: Map<String, T> = new Map();
+	final loadingAssets: Map<String, Array<FutureTrigger<Outcome<T, Error>>>> = new Map();
+	final urlToScope: Map<String, Array<String>> = new Map();
+	final unloaders: Map<String, Void -> Void> = new Map();
+	final tag: String;
 
 	function new( tag: String ) {
 		this.tag = tag;
 	}
 
-	function onResolve( scope: String, path: String, file: String ) : Promise<T> { return Promise.NULL; }
+	function onResolve( scope: String, path: String, file: String ) : Promise<T> {
+		return Promise.NULL;
+	}
 
 	public final function get( scope: String, path: String, file: String ) : Promise<T> {
-		var url = CoreIOUtils.tagAsset(urlToScope, scope, path, file);
-		var cached = cachedAssets.get(url);
-		var f = Future.trigger();
-		var id = '`$scope:$url`';
+		final url = CoreIOUtils.tagAsset(urlToScope, scope, path, file);
+		final cached = cachedAssets.get(url);
+		final f = Future.trigger();
+		final id = '`$scope:$url`';
 
 		asset_info('queue $tag $id');
 
@@ -31,7 +33,7 @@ class GenericIO<T> {
 			return f;
 		}
 
-		var loading = loadingAssets.get(url);
+		final loading = loadingAssets.get(url);
 
 		if (loading != null) {
 			asset_info('$id is already loading');
@@ -42,14 +44,14 @@ class GenericIO<T> {
 		asset_info('loading $tag $id');
 		loadingAssets.set(url, [f]);
 
-		var ret = Future.trigger();
+		final ret = Future.trigger();
 
 		onResolve(scope, path, file)
 			.handle(function( o ) switch o {
 				case Success(d):
 					cachedAssets.set(url, d);
-					var r = Success(d);
-					var triggers = loadingAssets.get(url);
+					final r = Success(d);
+					final triggers = loadingAssets.get(url);
 
 					if (triggers != null) {
 						for (t in triggers) {
@@ -60,7 +62,7 @@ class GenericIO<T> {
 					loadingAssets.remove(url);
 					ret.trigger(r);
 				case err:
-					var triggers = loadingAssets.get(url);
+					final triggers = loadingAssets.get(url);
 
 					if (triggers != null) {
 						for (t in triggers) {
@@ -79,7 +81,7 @@ class GenericIO<T> {
 		asset_info('unloading scope `$scope`');
 
 		for (url in urlToScope.keys()) {
-			var scopes = urlToScope.get(url);
+			final scopes = urlToScope.get(url);
 
 			if (scopes != null && scopes.indexOf(scope) != -1) {
 				unload(scope, url);
@@ -90,10 +92,10 @@ class GenericIO<T> {
 	}
 
 	final function unload( scope: String, url: String ) {
-		var id = '`$scope:$url`';
+		final id = '`$scope:$url`';
 		asset_info('unscoping $id');
 
-		var scopes = urlToScope.get(url);
+		final scopes = urlToScope.get(url);
 
 		if (scopes != null) {
 			scopes.remove(scope);
@@ -101,7 +103,7 @@ class GenericIO<T> {
 			if (scopes.length == 0) {
 				asset_info('unloading $tag $id');
 
-				var unloader = unloaders.get(url);
+				final unloader = unloaders.get(url);
 
 				if (unloader != null) {
 					unloader();
