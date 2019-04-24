@@ -6,19 +6,23 @@ import kha.Sound;
 using tink.CoreApi;
 
 class SoundIO {
-	var cachedAssets: Map<String, Sound> = new Map();
-	var loadingAssets: Map<String, Array<FutureTrigger<Outcome<Sound, Error>>>> = new Map();
-	var urlToScope: Map<String, Array<String>> = new Map();
+	final cachedAssets: Map<String, Sound> = new Map();
+	final loadingAssets: Map<String, Array<FutureTrigger<Outcome<Sound, Error>>>> = new Map();
+	final urlToScope: Map<String, Array<String>> = new Map();
 
-	var assetsHandled = 0;
+	public final stats = {
+		all: 0,
+		ready: 0,
+		failed: 0,
+	}
 
 	public function new() {
 	}
 
-	public function get( scope: String, path: String, file: String, ?opts: { uncompress: Bool } ) : Promise<Sound> {
-		var url = CoreIOUtils.tagAsset(urlToScope, scope, path, file);
-		var cached = cachedAssets.get(url);
-		var f = Future.trigger();
+	public function get( scope: String, path: String, file: String, ?opts: { ?uncompress: Bool, formats: Array<String> } ) : Promise<Sound> {
+		final url = CoreIOUtils.tagAsset(urlToScope, scope, path, file);
+		final cached = cachedAssets.get(url);
+		final f = Future.trigger();
 
 		asset_info('queue sound `$url` for scope `$scope`');
 
@@ -28,7 +32,7 @@ class SoundIO {
 			return f;
 		}
 
-		var loading = loadingAssets.get(url);
+		final loading = loadingAssets.get(url);
 
 		if (loading != null) {
 			asset_info('already loading sound `$url`, adding scope `$scope`');
@@ -38,7 +42,7 @@ class SoundIO {
 
 		function soundok( sound: Sound ) {
 			cachedAssets.set(url, sound);
-			var r = Success(sound);
+			final r = Success(sound);
 
 			asset_info('loaded sound `$url` for scope `$scope`');
 
@@ -47,29 +51,34 @@ class SoundIO {
 			}
 
 			loadingAssets.remove(url);
-			assetsHandled += 1;
+			stats.ready += 1;
 		}
 
 		asset_info('loading sound `$url` for scope `$scope`');
 		loadingAssets.set(url, [f]);
+		stats.all += 1;
 
-		kha.Assets.loadSoundFromPath(url, function( sound: Sound ) {
-			if (opts == null || opts.uncompress) {
+		final defaultExt = kha.LoaderImpl.getSoundFormats();
+		final exts = opts != null ? opts.formats != null ? opts.formats : defaultExt : defaultExt;
+		final desc = { files: [for (e in exts) '$path/${haxe.io.Path.withoutExtension(file)}.$e'] }
+
+		@:privateAccess kha.LoaderImpl.loadSoundFromDescription(desc, function( sound: Sound ) {
+			if (opts == null || opts.uncompress == null || opts.uncompress) {
 				sound.uncompress(soundok.bind(sound));
 			} else {
 				soundok(sound);
 			}
 		}, function( err ) {
-			var r = Failure(new Error(Std.string(err)));
+			final r = Failure(new Error(Std.string(err)));
 
-			asset_info('failed to load sound `$url` for scope `$scope`');
+			asset_err('failed to load sound `$url` for scope `$scope`');
 
 			for (t in loadingAssets.get(url)) {
 				t.trigger(r);
 			}
 
 			loadingAssets.remove(url);
-			assetsHandled += 1;
+			stats.failed += 1;
 		});
 
 		return f;
@@ -77,7 +86,7 @@ class SoundIO {
 
 	public function unloadScope( scope: String ) {
 		for (url in urlToScope.keys()) {
-			var scopes = urlToScope.get(url);
+			final scopes = urlToScope.get(url);
 
 			if (scopes.indexOf(scope) != -1) {
 				unloadSound(scope, url);
@@ -86,7 +95,7 @@ class SoundIO {
 	}
 
 	public function unloadSound( scope: String, url: String ) {
-		var scopes = urlToScope.get(url);
+		final scopes = urlToScope.get(url);
 
 		asset_info('unscoping sound `$url` for `$scope`');
 		scopes.remove(scope);
