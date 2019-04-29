@@ -60,7 +60,7 @@ class SoundIO {
 
 		final defaultExt = kha.LoaderImpl.getSoundFormats();
 		final exts = opts != null ? opts.formats != null ? opts.formats : defaultExt : defaultExt;
-		final desc = { files: [for (e in exts) '$path/${haxe.io.Path.withoutExtension(file)}.$e'] }
+		final desc = { files: [for (e in exts) '$path${haxe.io.Path.withoutExtension(file)}.$e'] }
 
 		@:privateAccess kha.LoaderImpl.loadSoundFromDescription(desc, function( sound: Sound ) {
 			if (opts == null || opts.uncompress == null || opts.uncompress) {
