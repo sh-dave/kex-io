@@ -43,7 +43,7 @@ class ImageIO {
 		asset_info('loading image `$url` for scope `$scope`');
 		loadingAssets.set(url, [f]);
 
-		final loadedUrl = url;
+		var loadedUrl = url;
 #if (kha_kore || kha_hl)
 		loadedUrl = StringTools.replace(loadedUrl, '.png', '.k');
 #end
