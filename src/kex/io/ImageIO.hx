@@ -19,8 +19,9 @@ class ImageIO {
 	public function new() {
 	}
 
-	public function get( scope: String, path: String, file: String ) : Promise<Image> {
-		final url = CoreIOUtils.tagAsset(urlToScope, scope, path, file);
+	public function get( url: String, ?opts: { ?scope: String } ) : Promise<Image> {
+		final scope = field(opts, 'scope', '*');
+		CoreIOUtils.tagAsset(urlToScope, scope, url);
 		final cached = cachedAssets.get(url);
 		final f = Future.trigger();
 

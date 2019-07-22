@@ -19,8 +19,9 @@ class SoundIO {
 	public function new() {
 	}
 
-	public function get( scope: String, path: String, file: String, ?opts: { ?uncompress: Bool, formats: Array<String> } ) : Promise<Sound> {
-		final url = CoreIOUtils.tagAsset(urlToScope, scope, path, file);
+	public function get( url: String, ?opts: { ?scope: String, ?uncompress: Bool, formats: Array<String> } ) : Promise<Sound> {
+		final scope = field(opts, 'scope', '*');
+		CoreIOUtils.tagAsset(urlToScope, scope, url);
 		final cached = cachedAssets.get(url);
 		final f = Future.trigger();
 

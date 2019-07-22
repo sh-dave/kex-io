@@ -15,8 +15,9 @@ class VideoIO {
 	public function new() {
 	}
 
-	public function get( scope: String, path: String, file: String ) : Promise<Video> {
-		var url = CoreIOUtils.tagAsset(urlToScope, scope, path, file);
+	public function get( url: String, ?opts: { ?scope: String } ) : Promise<Video> {
+		final scope = field(opts, 'scope', '*');
+		CoreIOUtils.tagAsset(urlToScope, scope, url);
 		var cached = cachedAssets.get(url);
 		var f = Future.trigger();
 

@@ -19,8 +19,9 @@ class FontIO {
 	public function new() {
 	}
 
-	public function get( scope: String, path: String, file: String ) : Promise<Font> {
-		final url = CoreIOUtils.tagAsset(urlToScope, scope, path, file);
+	public function get( url: String, ?opts: { ?scope: String } ) : Promise<Font> {
+		final scope = field(opts, 'scope', '*');
+		CoreIOUtils.tagAsset(urlToScope, scope, url);
 		final cached = cachedAssets.get(url);
 		final f = Future.trigger();
 

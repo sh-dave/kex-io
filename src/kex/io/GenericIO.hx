@@ -19,8 +19,9 @@ class GenericIO<T> {
 		return Promise.NULL;
 	}
 
-	public final function get( scope: String, path: String, file: String ) : Promise<T> {
-		final url = CoreIOUtils.tagAsset(urlToScope, scope, path, file);
+	public final function get( url: String, ?opts: { ?scope: String } ) : Promise<T> {
+		final scope = field(opts, 'scope', '*');
+		CoreIOUtils.tagAsset(urlToScope, scope, url);
 		final cached = cachedAssets.get(url);
 		final f = Future.trigger();
 		final id = '`$scope:$url`';
@@ -46,7 +47,7 @@ class GenericIO<T> {
 
 		final ret = Future.trigger();
 
-		onResolve(scope, path, file)
+		onResolve(url, opts) // TODO (DK) or scope?
 			.handle(function( o ) switch o {
 				case Success(d):
 					cachedAssets.set(url, d);

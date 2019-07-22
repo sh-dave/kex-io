@@ -1,11 +1,16 @@
 package kex.io;
 
 class CoreIOUtils {
-	public static function genUrl( path, file )
-		return '$path$file';
+	public static function field( a: Dynamic, name: String, def: Dynamic ) : Dynamic {
+		if (a == null) {
+			return def;
+		}
 
-	public static function tagAsset( map: Map<String, Array<String>>, scope: String, path: String, file: String ) : String {
-		var url = genUrl(path, file);
+		final f = Reflect.field(a, name);
+		return f != null ? f : def;
+	}
+
+	public static function tagAsset( map: Map<String, Array<String>>, scope: String, url: String ) : String {
 		var scoped = map.get(url);
 
 		if (scoped == null) {
