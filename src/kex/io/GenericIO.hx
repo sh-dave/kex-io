@@ -15,7 +15,7 @@ class GenericIO<T> {
 		this.tag = tag;
 	}
 
-	function onResolve( scope: String, path: String, file: String ) : Promise<T> {
+	function onResolve( url: String, ?opts: { ?scope: String } ) : Promise<T> {
 		return Promise.NULL;
 	}
 
