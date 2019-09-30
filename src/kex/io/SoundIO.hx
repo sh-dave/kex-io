@@ -19,7 +19,7 @@ class SoundIO {
 	public function new() {
 	}
 
-	public function get( url: String, ?opts: { ?scope: String, ?uncompress: Bool, formats: Array<String> } ) : Promise<Sound> {
+	public function get( url: String, ?opts: { ?scope: String, ?uncompress: Bool, ?formats: Array<String> } ) : Promise<Sound> {
 		final scope = field(opts, 'scope', '*');
 		CoreIOUtils.tagAsset(urlToScope, scope, url);
 		final cached = cachedAssets.get(url);
@@ -61,7 +61,7 @@ class SoundIO {
 
 		final defaultExt = kha.LoaderImpl.getSoundFormats();
 		final exts = opts != null ? opts.formats != null ? opts.formats : defaultExt : defaultExt;
-		final desc = { files: [for (e in exts) '$path${haxe.io.Path.withoutExtension(file)}.$e'] }
+		final desc = { files: [for (e in exts) '${haxe.io.Path.withoutExtension(url)}.$e'] }
 
 		@:privateAccess kha.LoaderImpl.loadSoundFromDescription(desc, function( sound: Sound ) {
 			if (opts == null || opts.uncompress == null || opts.uncompress) {
