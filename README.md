@@ -4,7 +4,12 @@ Async asset handling for [Kha](https://github.com/Kode/Kha.git). The code is hea
 
 ## dependencies
 
-- add [tink_core](https://github.com/haxetink/tink_core.git) to your main project's `khafile.js` as nested `addProject` call's don't quite work in khamake yet
+- [tink_core](https://github.com/haxetink/tink_core.git)
+
+## optional dependencies
+
+- [tink_core_ext](https://github.com/kevinresol/tink_core_ext.git) for  `Promises.multi()`
+- [tink_await](https://github.com/haxetink/tink_await.git) if you prefer to use javascript style `@:await` instead of manually handling the promises
 
 ## usage
 
@@ -13,28 +18,28 @@ using tink.CoreApi;
 
 var blobs = new kex.io.BlobIO();
 
-// load 1
-blobs.get('*', './', 'a.txt')
+// load a file
+blobs.get('a.txt')
 	.handle(function( o ) switch o {
 		case Success(blob):
 			trace(blob.toString());
 		case Failure(err):
 	});
 
-// load 2
-(blobs.get('*', './', 'a.txt') && blobs.get('*', './', 'b.txt'))
+// load 2 files
+(blobs.get('foo.txt') && blobs.get('bar.txt'))
 	.handle(function( o ) switch o {
 		case Success(data):
-			trace(data.a.toString());
-			trace(data.b.toString());
+			trace(data.a.toString()); // foo
+			trace(data.b.toString()); // bar
 		case Failure(err);
 	});
 
-// load many
+// load many files of the same type
 Promise.inParallel([
-	blobs.get('*', './', 'a.txt'),
-	blobs.get('*', './', 'b.txt'),
-	blobs.get('*', './', 'c.txt'),
+	blobs.get('a.txt'),
+	blobs.get('b.txt'),
+	blobs.get('c.txt'),
 ]).handle(function( o ) switch o {
 	case Success(datas):
 		for (data in datas) {
@@ -49,7 +54,7 @@ typedef Foo = {
 	someString: String,
 }
 
-blobs.get('*', './', 'foo.json')
+blobs.get('foo.json')
 	.next(function( b ) {
 		var foo: Foo = tink.Json.parse(b.toString());
 		return foo;
@@ -62,19 +67,39 @@ blobs.get('*', './', 'foo.json')
 
 // scopes
 Promise.inParallel([
-	blobs.get('scope-a', './', 'a.txt'),
-	blobs.get('scope-a', './', 'b.txt'),
-	blobs.get('scope-b', './', 'b.txt'), // won't actually load `b.txt` again, but get it from the cache
-	blobs.get('scope-c', './', 'c.txt'),
+	blobs.get('a.txt', { scope: 'scope-a' }),
+	blobs.get('b.txt', { scope: 'scope-a' }),
+	blobs.get('b.txt', { scope: 'scope-b' }), // uses cached b.txt
+	blobs.get('c.txt', { scope: 'scope-c' }),
 ]).handle(function( o ) switch o {
 	case Success(datas):
 		blobs.unloadScope('scope-a');
-		// unloads `a.txt`
+		// will unload `a.txt`
 		// keeps `b.txt` around, as it is also required in `scope-b`
 	case Failure(err);
 });
+
+// named fields (using tink_core_ext's Promises)
+Promises.multi({
+	hello: blobs.get('a.txt'),
+	world: blobs.get('b.txt'),
+]).handle(function( o ) switch o {
+	case Success(datas):
+		trace(datas.hello);
+		trace(datas.world);
+	case Failure(err);
+});
+
 ```
 
 ## optional verbose logging
 
-Use the initialization macro `--macro kex.io.AssetLog.info(true)` to enable more verbose logging.
+Use the initialization macro `--macro kex.io.AssetLog.level(X)` to enable more verbose logging (default is errors).
+
+X | name
+-|-
+1 | errors
+2 | warnings
+3 | info
+4 | debug
+

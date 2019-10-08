@@ -3,7 +3,7 @@
 	"url": "https://github.com/sh-dave/kex-io.git",
 	"classPath": "src",
 	"dependencies": {
-		"tink_core": "1.18.0"
+		"tink_core": ""
 	},
 	"license": "zlib"
 }
