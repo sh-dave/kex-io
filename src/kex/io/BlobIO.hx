@@ -1,6 +1,7 @@
 package kex.io;
 
 import kex.io.AssetLog.*;
+import kex.io.CoreIOUtils.*;
 import kha.Blob;
 
 using tink.CoreApi;

@@ -1,6 +1,7 @@
 package kex.io;
 
 import kex.io.AssetLog.*;
+import kex.io.CoreIOUtils.*;
 import kha.Font;
 
 using tink.CoreApi;
