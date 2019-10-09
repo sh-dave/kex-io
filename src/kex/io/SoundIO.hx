@@ -1,10 +1,6 @@
 package kex.io;
 
-import kex.io.AssetLog.*;
-import kex.io.CoreIOUtils.*;
 import kha.Sound;
-
-using tink.CoreApi;
 
 class SoundIO {
 	final cachedAssets: Map<String, Sound> = new Map();

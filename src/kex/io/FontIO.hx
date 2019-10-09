@@ -1,10 +1,6 @@
 package kex.io;
 
-import kex.io.AssetLog.*;
-import kex.io.CoreIOUtils.*;
 import kha.Font;
-
-using tink.CoreApi;
 
 class FontIO {
 	final cachedAssets: Map<String, Font> = new Map();

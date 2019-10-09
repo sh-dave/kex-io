@@ -1,10 +1,5 @@
 package kex.io;
 
-import kex.io.AssetLog.*;
-import kex.io.CoreIOUtils.*;
-
-using tink.CoreApi;
-
 class GenericIO<T> {
 	final cachedAssets: Map<String, T> = new Map();
 	final loadingAssets: Map<String, Array<FutureTrigger<Outcome<T, Error>>>> = new Map();

@@ -1,10 +1,6 @@
 package kex.io;
 
-import kex.io.AssetLog.*;
-import kex.io.CoreIOUtils.*;
 import kha.Video;
-
-using tink.CoreApi;
 
 class VideoIO {
 	var cachedAssets: Map<String, Video> = new Map();

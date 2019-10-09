@@ -1,10 +1,6 @@
 package kex.io;
 
-import kex.io.AssetLog.*;
-import kex.io.CoreIOUtils.*;
 import kha.Blob;
-
-using tink.CoreApi;
 
 class BlobIO {
 	final cachedAssets: Map<String, Blob> = new Map();

@@ -92,12 +92,14 @@ Promises.multi({
 
 ```
 
-## optional verbose logging
+## logging
 
-Use the initialization macro `--macro kex.io.AssetLog.level(X)` to enable more verbose logging (default is errors).
+Use the initialization macro `--macro kex.io.AssetLog.level(X)` to enable more verbose logging (default is `errors`).
+If you want to use some custom logging mechanism, define `kex_io_custom_log` to disable the provided logger, add a `kex.io.AssetLog` class somewhere in your classpath and define the 4 required macros (`asset_debug`, `asset_info`, `asset_warn`, `asset_err`).
 
 X | name
 -|-
+0 | no logging code will be generated
 1 | errors
 2 | warnings
 3 | info

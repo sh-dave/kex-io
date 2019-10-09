@@ -1,10 +1,6 @@
 package kex.io;
 
-import kex.io.AssetLog.*;
-import kex.io.CoreIOUtils.*;
 import kha.Image;
-
-using tink.CoreApi;
 
 class ImageIO {
 	final cachedAssets: Map<String, Image> = new Map();
