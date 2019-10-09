@@ -103,3 +103,6 @@ X | name
 3 | info
 4 | debug
 
+## scoping
+
+In case you don't supply a scope for your assets, the default `*` is used.
