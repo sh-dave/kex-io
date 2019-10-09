@@ -1,4 +1,4 @@
-# kex-io
+# kex-io [![License: Zlib](https://img.shields.io/badge/License-Zlib-green.svg)](https://opensource.org/licenses/Zlib)
 
 Async asset handling for [Kha](https://github.com/Kode/Kha.git). The code is heavily based on [iron's Data class](https://github.com/armory3d/iron/blob/master/Sources/iron/data/Data.hx), but uses promises instead of callbacks. It also features a simple scoping (i.e. reference counting) mechanism. All assets are cached, whether already loaded or still in progress.
 
@@ -15,27 +15,33 @@ Async asset handling for [Kha](https://github.com/Kode/Kha.git). The code is hea
 
 ```haxe
 using tink.CoreApi;
-
 var blobs = new kex.io.BlobIO();
+```
 
-// load a file
-blobs.get('a.txt')
-	.handle(function( o ) switch o {
-		case Success(blob):
-			trace(blob.toString());
-		case Failure(err):
-	});
+#### load a single file
 
-// load 2 files
-(blobs.get('foo.txt') && blobs.get('bar.txt'))
-	.handle(function( o ) switch o {
-		case Success(data):
-			trace(data.a.toString()); // foo
-			trace(data.b.toString()); // bar
-		case Failure(err);
-	});
+```haxe
+blobs.get('a.txt').handle(function( o ) switch o {
+	case Success(blob):
+		trace(blob.toString());
+	case Failure(err):
+});
+```
 
-// load many files of the same type
+#### load 2 files
+
+```haxe
+(blobs.get('foo.txt') && blobs.get('bar.txt')).handle(function( o ) switch o {
+	case Success(data):
+		trace(data.a.toString()); // foo
+		trace(data.b.toString()); // bar
+	case Failure(err);
+});
+```
+
+#### load multiple files
+
+```haxe
 Promise.inParallel([
 	blobs.get('a.txt'),
 	blobs.get('b.txt'),
@@ -47,25 +53,30 @@ Promise.inParallel([
 		}
 	case Failure(err);
 });
+```
 
-// load json
+#### load some json
+
+```haxe
 typedef Foo = {
-	someInt: Int,
-	someString: String,
+	final someInt: Int;
+	final someString: String;
 }
 
-blobs.get('foo.json')
-	.next(function( b ) {
-		var foo: Foo = tink.Json.parse(b.toString());
-		return foo;
-	}).handle(function( o ) switch o {
-		case Success(foo):
-			trace(foo.someInt);
-			trace(foo.someString);
-		case Failure(err):
-	});
+blobs.get('foo.json').next(function( b ) {
+	var foo: Foo = tink.Json.parse(b.toString());
+	return foo;
+}).handle(function( o ) switch o {
+	case Success(foo):
+		trace(foo.someInt);
+		trace(foo.someString);
+	case Failure(err):
+});
+```
 
-// scopes
+#### scopes
+
+```haxe
 Promise.inParallel([
 	blobs.get('a.txt', { scope: 'scope-a' }),
 	blobs.get('b.txt', { scope: 'scope-a' }),
@@ -78,8 +89,11 @@ Promise.inParallel([
 		// keeps `b.txt` around, as it is also required in `scope-b`
 	case Failure(err);
 });
+```
 
-// named fields (using tink_core_ext's Promises)
+#### named fields (using tink_core_ext's Promises)
+
+```haxe
 Promises.multi({
 	hello: blobs.get('a.txt'),
 	world: blobs.get('b.txt'),
@@ -89,7 +103,6 @@ Promises.multi({
 		trace(datas.world);
 	case Failure(err);
 });
-
 ```
 
 ## logging
