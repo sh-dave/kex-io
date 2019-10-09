@@ -11,7 +11,11 @@ class VideoIO {
 	var loadingAssets: Map<String, Array<FutureTrigger<Outcome<Video, Error>>>> = new Map();
 	var urlToScope: Map<String, Array<String>> = new Map();
 
-	var assetsHandled = 0;
+	public final stats = {
+		all: 0,
+		ready: 0,
+		failed: 0,
+	}
 
 	public function new() {
 	}
@@ -40,6 +44,7 @@ class VideoIO {
 
 		asset_info('loading video `$url` for scope `$scope`');
 		loadingAssets.set(url, [f]);
+		stats.all += 1;
 
 		kha.Assets.loadVideoFromPath(url, function( video: Video ) {
 			cachedAssets.set(url, video);
@@ -52,7 +57,7 @@ class VideoIO {
 			}
 
 			loadingAssets.remove(url);
-			assetsHandled += 1;
+			stats.ready += 1;
 		}, function( err ) {
 			var r = Failure(new Error(Std.string(err)));
 
@@ -63,7 +68,7 @@ class VideoIO {
 			}
 
 			loadingAssets.remove(url);
-			assetsHandled += 1;
+			stats.failed += 1;
 		});
 
 		return f;

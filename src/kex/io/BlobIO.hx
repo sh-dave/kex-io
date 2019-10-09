@@ -11,6 +11,12 @@ class BlobIO {
 	final loadingAssets: Map<String, Array<FutureTrigger<Outcome<Blob, Error>>>> = new Map();
 	final urlToScope: Map<String, Array<String>> = new Map();
 
+	public final stats = {
+		all: 0,
+		ready: 0,
+		failed: 0,
+	}
+
 	public function new() {
 	}
 
@@ -39,6 +45,7 @@ class BlobIO {
 
 		asset_info('loading blob $id');
 		loadingAssets.set(url, [f]);
+		stats.all += 1;
 
 		kha.Assets.loadBlobFromPath(url, function( blob: Blob ) {
 			asset_info('$id finished loading');
@@ -54,6 +61,7 @@ class BlobIO {
 			}
 
 			loadingAssets.remove(url);
+			stats.ready += 1;
 		}, function( err ) {
 			final errmsg = Std.string(err);
 			final r = Failure(new Error(errmsg));
@@ -70,6 +78,7 @@ class BlobIO {
 			}
 
 			loadingAssets.remove(url);
+			stats.failed += 1;
 		});
 
 		return f;
