@@ -75,6 +75,9 @@ class FontIO {
 		return f;
 	}
 
+	public function getCached( url: String )
+		return cachedAssets.get(url);
+
 	public function unloadScope( scope: String ) {
 		for (url in urlToScope.keys()) {
 			final scopes = urlToScope.get(url);

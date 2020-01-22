@@ -80,6 +80,9 @@ class BlobIO {
 		return f;
 	}
 
+	public function getCached( url: String )
+		return cachedAssets.get(url);
+
 	public function unloadScope( scope: String ) {
 		asset_info('unloading scope `$scope`');
 

@@ -70,6 +70,9 @@ class VideoIO {
 		return f;
 	}
 
+	public function getCached( url: String )
+		return cachedAssets.get(url);
+
 	public function unloadScope( scope: String ) {
 		for (url in urlToScope.keys()) {
 			var scopes = urlToScope.get(url);

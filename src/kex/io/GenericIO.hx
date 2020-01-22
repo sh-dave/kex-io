@@ -74,6 +74,9 @@ class GenericIO<T> {
 		return ret;
 	}
 
+	public function getCached( url: String )
+		return cachedAssets.get(url);
+
 	public final function unloadScope( scope: String ) {
 		asset_info('unloading scope `$scope`');
 
