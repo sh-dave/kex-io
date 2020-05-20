@@ -6,6 +6,8 @@ class BlobIO {
 	final cachedAssets: Map<String, Blob> = new Map();
 	final loadingAssets: Map<String, Array<FutureTrigger<Outcome<Blob, Error>>>> = new Map();
 	final urlToScope: Map<String, Array<String>> = new Map();
+	final queue: Array<{ id: String, url: String, scope: String }> = [];
+	var isLoading = false;
 
 	public final stats = {
 		all: 0,
@@ -23,8 +25,6 @@ class BlobIO {
 		final f = Future.trigger();
 		final id = '`$scope:$url`';
 
-		asset_info('queue blob $id');
-
 		if (cached != null) {
 			asset_debug('$id is already cached');
 			f.trigger(Success(cached));
@@ -39,9 +39,24 @@ class BlobIO {
 			return f;
 		}
 
-		asset_info('loading blob $id');
+		asset_info('queuing blob $id');
 		loadingAssets.set(url, [f]);
 		stats.all += 1;
+
+		queue.push({ id: id, url: url, scope: scope });
+
+		if (!isLoading) {
+			triggerNext();
+		}
+
+		return f;
+	}
+
+	function loadImpl( data: { id: String, url: String, scope: String } ) {
+		isLoading = true;
+		final id = data.id;
+		final url = data.url;
+		final scope = data.scope;
 
 		kha.Assets.loadBlobFromPath(url, function( blob: Blob ) {
 			asset_info('$id finished loading');
@@ -58,6 +73,8 @@ class BlobIO {
 
 			loadingAssets.remove(url);
 			stats.ready += 1;
+			isLoading = false;
+			triggerNext();
 		}, function( err ) {
 			final errmsg = Std.string(err);
 			final r = Failure(new Error(errmsg));
@@ -75,9 +92,16 @@ class BlobIO {
 
 			loadingAssets.remove(url);
 			stats.failed += 1;
+			isLoading = false;
+			triggerNext();
 		});
+	}
 
-		return f;
+	function triggerNext() {
+		if (queue.length > 0) {
+			final next = queue.shift();
+			loadImpl(next);
+		}
 	}
 
 	public function getCached( url: String )

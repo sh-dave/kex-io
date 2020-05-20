@@ -6,6 +6,8 @@ class GenericIO<T> {
 	final urlToScope: Map<String, Array<String>> = new Map();
 	final unloaders: Map<String, Void -> Void> = new Map();
 	final tag: String;
+	final queue: Array<{ url: String, ?opts: { ?scope: String } }> = [];
+	var isLoading = false;
 
 	function new( tag: String ) {
 		this.tag = tag;
@@ -22,8 +24,6 @@ class GenericIO<T> {
 		final f = Future.trigger();
 		final id = '`$scope:$url`';
 
-		asset_info('queue $tag $id');
-
 		if (cached != null) {
 			asset_debug('$id is already cached');
 			f.trigger(Success(cached));
@@ -38,10 +38,28 @@ class GenericIO<T> {
 			return f;
 		}
 
-		asset_info('loading $tag $id');
+		asset_info('queuing $tag $id');
 		loadingAssets.set(url, [f]);
 
-		final ret = Future.trigger();
+		queue.push({ url: url, opts: opts });
+
+		if (!isLoading) {
+			triggerNext();
+		}
+
+		return f;
+	}
+
+	function triggerNext() {
+		if (queue.length > 0) {
+			final next = queue.shift();
+			loadImpl(next);
+		}
+	}
+
+	function loadImpl( data ) {
+		final url = data.url;
+		final opts = data.opts;
 
 		onResolve(url, opts) // TODO (DK) or scope?
 			.handle(function( o ) switch o {
@@ -57,7 +75,8 @@ class GenericIO<T> {
 					}
 
 					loadingAssets.remove(url);
-					ret.trigger(r);
+					isLoading = false;
+					triggerNext();
 				case err:
 					final triggers = loadingAssets.get(url);
 
@@ -68,10 +87,9 @@ class GenericIO<T> {
 					}
 
 					loadingAssets.remove(url);
-					ret.trigger(err);
+					isLoading = false;
+					triggerNext();
 			});
-
-		return ret;
 	}
 
 	public function getCached( url: String )
