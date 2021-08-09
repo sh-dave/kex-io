@@ -1,6 +1,6 @@
 package kex.io;
 
-class GenericIO<T> {
+abstract class GenericIO<T> {
 	final cachedAssets: Map<String, T> = new Map();
 	final loadingAssets: Map<String, Array<FutureTrigger<Outcome<T, Error>>>> = new Map();
 	final urlToScope: Map<String, Array<String>> = new Map();
@@ -11,9 +11,7 @@ class GenericIO<T> {
 		this.tag = tag;
 	}
 
-	function onResolve( url: String, ?opts: { ?scope: String } ) : Promise<T> {
-		return Promise.NULL;
-	}
+	abstract function onResolve( url: String, ?opts: { ?scope: String } ) : Promise<T>;
 
 	public final function get( url: String, ?opts: { ?scope: String } ) : Promise<T> {
 		final scope = field(opts, 'scope', '*');
